@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>文本相似度演示</title>
+		<style href="{{ url_for('static', filename='index.css') }}" type="text/css"></style>
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='semantic/semantic.min.css') }}">
+		<script
+	  	src="{{ url_for('static', filename='jquery.min.js') }}"
+	  	integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+	  	crossorigin="anonymous"></script>
+		<script src="{{ url_for('static', filename='semantic/semantic.min.js') }}"></script>
+		<style type="text/css">
+			.page-content-wrapper{
+				width: 70%;
+				margin: 0 auto;
+				padding-top: 130px;
+			}
+			.menu-item{
+				height: 100%;
+			}
+			.menu-item-content{
+				display: none;
+			}
+			.textarea_div{
+				width: 49%;
+				display: inline-block;
+				position: relative;
+			}
+			.textarea_div_b{
+				float: right;
+			}
+			textarea{
+				width: 100%;
+				margin: 0 auto;
+				border-radius: .28571429rem;
+				border: 1px solid rgba(34,36,38,.15);
+				box-shadow: 0 1px 2px 0 rgba(34,36,38,.15);
+				outline: none;
+				height: 150px;
+				resize: none;
+				margin-bottom: 12px;
+				padding: 10px;
+				font-size: 16px;
+			}
+			.fre_button{
+				margin-right: 20px;
+			}
+			.cal_button:hover, .fre_button:hover{
+				cursor: pointer;
+			}
+		</style>
+		<script type="text/javascript">
+			menu_tab_index = 0;
+			$(document).ready(function(){
+				// 按钮栏按钮点击事件
+				$(".menu-item").click(function(){
+					$($(".menu-item-content")[menu_tab_index]).css("display", "none");
+					menu_tab_index = $(this).index();
+					$($(".menu-item-content")[menu_tab_index]).css("display", "block");
+					var menu_items = $(".menu-item");
+					menu_items_length = menu_items.length;
+					for(var i=0;i< menu_items_length;i++){
+						item = $(menu_items[i]);
+						var class_name = $(item).attr("class");
+						item.removeClass("active");
+						// alert(class_name);
+					}
+					$(this).addClass("active")
+				});
+				// 默认菜单栏第一个按钮点击
+				$(".menu-item")[0].click();
+				// 计算按钮点击事件
+				$(".cal_button").click(function(){
+					var model = $(".model").val();
+					var model_parameter = $(".model_parameter").val();
+					if(model == -1 || model_parameter == -1){
+						$(".error-field").css("display", "block");
+						return;
+					}
+					$(this).addClass("loading");
+					$(".display-content").css("display", "none");
+					$(".loading-content").css("display", "block");
+					// 向服务端发送数据
+					msg = {
+						"zh": $(".text_zh").val(),
+						"en": $(".text_en").val(),
+						"model_type": $(".model_type").val(),
+						"model_parameter": $(".model_parameter").val()
+					}
+					$.post("/calculation", msg, function(data){
+						$(".cal_button").removeClass("loading");
+						$(".loading-content").css("display", "none");
+						$(".display-content").css("display", "block");
+						$(".result-p").html(data["result"]);
+					}, dataType="json");
+				});
+				// 数据刷新按钮点击事件
+				$(".fre_button").click(function(){
+					$(this).addClass("loading");
+					$.getJSON("/random", function(data){
+						sen_zh = data["sen_zh"];
+						sen_en = data["sen_en"];
+						label = data["label"];
+						function remove(){
+							$(".text_zh").val(sen_zh);
+							$(".text_en").val(sen_en);
+							$(".fre_button").removeClass("loading");
+						}
+						setTimeout(function(){remove();}, 300);  
+					});
+				});
+				// 错误消息关闭按钮
+				$(".close").click(function(){
+					$(".error-field").css("display", "none");
+				});
+				// 默认刷新数据
+				$(".fre_button").click();
+				// 获得不同参数的模型
+				$(".model").change(function(){
+					var msg = {
+						"model_type": $(".model").val()
+					}
+					$.post("/model_parameter", msg, function(data){
+						for(var i=0;i<$(".model_parameter option").length-2;i++){
+							$(".model_parameter option:last").remove(); 
+						}
+						for(var key in data){
+							$(".model_parameter").append("<option value='"+key+"'>"+key+"</option>");
+						}
+					}, dataType="json");
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div class="page-content-wrapper">
+			<div class="ui pointing menu">
+				<a class="item menu-item">
+					相似度比较
+				</a>
+				<a class="item menu-item">
+					测试数据演示
+				</a>
+				<div class="right menu">
+					<div class="item">
+						<div class="ui transparent icon input">
+							<input type="text" placeholder="Search...">
+							<i class="search link icon"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="menu-content-wrapper">
+				<div class="ui segment menu-item-content">	
+					<div class="field">
+						<div class="textarea_div textarea_div_a">
+							<div class="ui top attached label">中文</div>
+							<textarea class="text_zh"></textarea>
+						</div>
+						<div class="textarea_div textarea_div_b">
+							<div class="ui top attached label">英文</div>
+							<textarea class="text_en"></textarea>
+						</div>
+				    </div>
+				    <div class="field error-field" style="display: none;">
+						<div class="ui error message" style="margin-bottom: 10px;">
+							<i class="close icon"></i>
+							<div class="header">
+								请选择要使用的模型以及对应的模型参数
+							</div>
+							<ul class="list">
+								<li>计算结果可使用多种模型，分别为TextRNN、TextRNN。</li>
+								<li>同种模型会使用多组不同的参数进行训练。</li>
+								<li>选择不同的模型以及不同的模型参数，可能会给出不同的结果。</li>
+							</ul>
+						</div>
+				    </div>
+				    <div class="field">
+				    	<div class="inline field" style="display: inline-block;">
+							<div class="ui right pointing label">
+								模型选择
+							</div>
+							<select style="width: 200px;" class="ui dropdown model model_type">
+								<option value="-1" selected = "selected">使用模型</option>
+								<option value="TextCNN">TextCNN</option>
+								<option value="TextRNN">TextRNN</option>
+								<option value="ALL">ALL</option>
+							</select>
+						</div>
+						<div class="inline field" style="display: inline-block; margin-left: 20px;">
+							<div class="ui right pointing label">
+								模型参数选择
+							</div>
+							<select style="width: 200px;" class="ui dropdown model_parameter">
+								<option value="-1">模型参数选择</option>
+								<option value="0">ALL</option>
+							</select>
+						</div>
+				    	<button style="float: right;" class="cal_button ui red button">计算相似度</button>
+						<button style="float: right;" class="fre_button ui blue button">重置验证数据</button>
+				    </div>
+				    <div style="margin-top: 20px;">
+				    	<div class="loading-content" style="display: none;">
+				    		<div class="ui icon message">
+								<i class="notched circle loading icon"></i>
+								<div>
+									<div class="header">请稍等</div>
+									<p>数据正在计算中</p>
+								</div>
+							</div>
+				    	</div>
+				    	<div class="display-content">
+				    		<div class="ui icon message">
+								<i class="notched certificate icon"></i>
+								<div>
+									<div class="header">计算结果</div>
+									<p class="result-p">无</p>
+								</div>
+							</div>
+				    	</div>
+				    </div>
+				</div>
+				<div class="ui segment menu-item-content">
+					<p>b</p>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
