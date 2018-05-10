@@ -35,48 +35,35 @@ TRAININGSET_DIR = '../data/Train.json'
 VALIDATIONSET_DIR = '../data/Validation.json'
 METADATA_DIR = '../data/metadata.tsv'
 
-# Data Parameters
-tf.flags.DEFINE_string("training_data_file", TRAININGSET_DIR, "Data source for the training data.")
-tf.flags.DEFINE_string("validation_data_file", VALIDATIONSET_DIR, "Data source for the validation data.")
-tf.flags.DEFINE_string("metadata_file", METADATA_DIR, "Metadata file for embedding visualization"
-                                                      "(Each line is a word segment in metadata_file).")
-tf.flags.DEFINE_string("train_or_restore", TRAIN_OR_RESTORE, "Train or Restore.")
-tf.flags.DEFINE_string("data_path", "data/train_snli.txt", "Data path.")
-
-# Model Hyperparameters
-tf.flags.DEFINE_float("learning_rate", 0.001, "The learning rate (default: 0.001)")
-tf.flags.DEFINE_integer("pad_seq_len", 120, "Recommended padding Sequence length of data (depends on the data)")
-tf.flags.DEFINE_integer("embedding_dim", 300, "Dimensionality of character embedding (default: 128)")
-tf.flags.DEFINE_integer("embedding_type", 1, "The embedding type (default: 1)")
-tf.flags.DEFINE_integer("fc_hidden_size", 1024, "Hidden size for fully connected layer (default: 1024)")
-tf.flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated filter sizes (default: '3,4,5')")
-tf.flags.DEFINE_integer("num_filters", 128, "Number of filters per filter size (default: 128)")
-tf.flags.DEFINE_float("dropout_keep_prob", 0.5, "Dropout keep probability (default: 0.5)")
-tf.flags.DEFINE_float("l2_reg_lambda", 0.0, "L2 regularization lambda (default: 0.0)")
-tf.flags.DEFINE_integer("num_classes", 2, "number of your classifier")
-tf.flags.DEFINE_integer("VOCAB_SIZE", 10000, "number of vocabulary")
-
-# Training Parameters
-tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (default: 64)")
-tf.flags.DEFINE_integer("num_epochs", 200, "Number of training epochs (default: 200)")
-tf.flags.DEFINE_integer("evaluate_every", 500, "Evaluate model on dev set after this many steps (default: 100)")
-tf.flags.DEFINE_float("norm_ratio", 2, "The ratio of the sum of gradients norms of trainable variable (default: 1.25)")
-tf.flags.DEFINE_integer("decay_steps", 5000, "how many steps before decay learning rate.")
-tf.flags.DEFINE_float("decay_rate", 0.5, "Rate of decay for learning rate.")
-tf.flags.DEFINE_integer("checkpoint_every", 50, "Save model after this many steps (default: 100)")
-tf.flags.DEFINE_integer("num_checkpoints", 5, "Number of checkpoints to store (default: 5)")
-
-# Misc Parameters
-tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
-tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
-tf.flags.DEFINE_boolean("gpu_options_allow_growth", True, "Allow gpu options growth")
-
-FLAGS = tf.flags.FLAGS
-dilim = '-' * 100
-# FLAGS(sys.argv)
-# logger.info('\n'.join([dilim, *['{0:>50}|{1:<50}'.format(attr.upper(), FLAGS.__getattr__(attr)) for attr in sorted(FLAGS.__dict__['__wrapped'])], dilim]))
 
 parser = argparse.ArgumentParser(description="Training CNN")
+parser.add_argument("--training_data_file", type=str, default=TRAININGSET_DIR, help="Data source for the training data.")
+parser.add_argument("--validation_data_file", type=str, default=VALIDATIONSET_DIR, help="Data source for the validation data.")
+parser.add_argument("--metadata_file", type=str, default=METADATA_DIR, help="Metadata file for embedding visualization(Each line is a word segment in metadata_file).")
+parser.add_argument("--train_or_restore", type=str, default=TRAIN_OR_RESTORE, help="Train or Restore.")
+parser.add_argument("--data_path", type=str, default="data/train_snli.txt", help="Data path.")
+parser.add_argument("--pad_seq_len", type=int, default=120, help="Recommended padding Sequence length of data (depends on the data)")
+parser.add_argument("--embedding_dim", type=int, default=300, help="Dimensionality of character embedding (default: 128)")
+parser.add_argument("--embedding_type", type=int, default=1, help="The embedding type (default: 1)")
+parser.add_argument("--fc_hidden_size", type=int, default=1024, help="Hidden size for fully connected layer (default: 1024)")
+parser.add_argument("--filter_sizes", type=str, default="3,4,5", help="Comma-separated filter sizes (default: '3,4,5')")
+parser.add_argument("--num_filters", type=int, default=128, help="Number of filters per filter size (default: 128)")
+parser.add_argument("--dropout_keep_prob", type=float, default=0.5, help="Dropout keep probability (default: 0.5)")
+parser.add_argument("--l2_reg_lambda", type=float, default=0.0, help="L2 regularization lambda (default: 0.0)")
+parser.add_argument("--num_classes", type=int, default=2, help="number of your classifier")
+parser.add_argument("--VOCAB_SIZE", type=int, default=10000, help="number of vocabulary")
+parser.add_argument("--batch_size", type=int, default=64, help="Batch Size (default: 64)")
+parser.add_argument("--num_epochs", type=int, default=200, help="Number of training epochs (default: 200)")
+parser.add_argument("--evaluate_every", type=int, default=500, help="Evaluate model on dev set after this many steps (default: 100)")
+parser.add_argument("--norm_ratio", type=int, default=2, help="The ratio of the sum of gradients norms of trainable variable (default: 1.25)")
+parser.add_argument("--decay_steps", type=int, default=5000, help="how many steps before decay learning rate.")
+parser.add_argument("--decay_rate", type=float, default=0.5, help="Rate of decay for learning rate.")
+parser.add_argument("--checkpoint_every", type=int, default=50, help="Save model after this many steps (default: 100)")
+parser.add_argument("--num_checkpoints", type=int, default=5, help="Number of checkpoints to store (default: 5)")
+parser.add_argument("--allow_soft_placement", type=bool, default=True, help="Allow device soft device placement")
+parser.add_argument("--log_device_placement", type=bool, default=False, help="Log placement of ops on devices")
+parser.add_argument("--gpu_options_allow_growth", type=bool, default=True, help="Allow gpu options growth")
+
 parser.add_argument("--learning_rate", type=float, default=0.001, help="learning rate")
 args = parser.parse_args()
 
